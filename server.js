@@ -5,9 +5,28 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
+let requestCount = 0;
+const MAX_REQUEST = 20;
+
 app.post("/api/generate", async (req, res) => {
   const userInput = req.body.input;
 
+  // 🟡 回数制限
+  requestCount++;
+  if (requestCount > MAX_REQUEST) {
+    return res.json({ result: "本日のデモ上限に達しました。" });
+  }
+
+  // 🟡 入力チェック
+  if (!userInput) {
+    return res.json({ result: "入力してください" });
+  }
+
+  if (userInput.length > 200) {
+    return res.json({ result: "文字数が多すぎます（200文字以内）" });
+  }
+
+  // 🟢 ここから元の処理
   const response = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
     headers: {
